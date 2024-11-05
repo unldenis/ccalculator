@@ -30,14 +30,13 @@ typedef struct {
 } NumberToken;
 
 
+typedef struct {
+    Token token;
+} OperatorToken;
 
-typedef enum {
-    inputerror_noerror = 0,
-    inputerror_noinput,
-    inputerror_toolong
-} InputError;
 
-// Create a string token
+
+// Create a number token
 int numbertoken_create(uint8_t pos, double_t value, NumberToken** out) {
     Token token;
     token.type = tokentype_number;
@@ -55,13 +54,56 @@ int numbertoken_create(uint8_t pos, double_t value, NumberToken** out) {
     return 0;
 }
 
+// Create an operator token
+int operatortoken_create(uint8_t pos, char value, OperatorToken** out) {
+    Token token;
+    
+    switch (value) {
+        case '+':
+            token.type = tokentype_plus;
+            break;
+        case '-':
+            token.type = tokentype_minus;
+            break;
+        case '*':
+            token.type = tokentype_star;
+            break;
+        case '\\':
+        case '/':
+            token.type = tokentype_slash;
+            break;
+        default:
+            return 1;
+
+    }
+    token.pos = pos;
+
+    OperatorToken* operatortoken = malloc(sizeof(OperatorToken));
+    if (operatortoken == NULL) {
+        return 2;  // Allocation error
+    }
+
+    operatortoken->token = token;
+
+    *out = operatortoken;
+    return 0;
+}
+
 // Print token values based on type
 void token_print(Token* token) {
     if (token->type == tokentype_number) {
         printf("NumberToken: %f\n", ((NumberToken*) token)->value);
-    } else if (token->type == tokentype_plus) {
+    } else if (token->type == tokentype_plus || token->type == tokentype_minus || token->type == tokentype_star || token->type == tokentype_slash) {
+        printf("OperatorToken: %d\n", ((OperatorToken*) token)->token.type);
     }
 }
+
+
+typedef enum {
+    inputerror_noerror = 0,
+    inputerror_noinput,
+    inputerror_toolong
+} InputError;
 
 // Get user input with buffer overflow protection
 static InputError getInputLine(char *prmpt, char *buff, size_t sz) {
@@ -107,11 +149,18 @@ int main(void) {
         printf("Error creating number token\n");
         return 1;
     }
-
     token_print(&stringtoken->token);
+
+    OperatorToken* operatortoken;
+    if (operatortoken_create(2, '+', &operatortoken)) {
+        printf("Error creating operator token\n");
+        return 1;
+    }
+    token_print(&operatortoken->token);
 
 
     // Free allocated memory
     free(stringtoken);
+    free(operatortoken);
     return 0;
 }
