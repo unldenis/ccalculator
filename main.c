@@ -6,17 +6,17 @@
 
 typedef enum {
     // Number
-    tokentype_number,
+    tokentype_number = 0,
     
     // Operators
-    tokentype_plus,
-    tokentype_minus,
-    tokentype_star,
-    tokentype_slash,
+    tokentype_plus = 100,
+    tokentype_minus = 101,
+    tokentype_star = 102,
+    tokentype_slash = 103,
     
     // Parenthesis
-    tokentype_lparen,
-    tokentype_rparen
+    tokentype_lparen = 200,
+    tokentype_rparen = 201
 } TokenType;
 
 typedef struct {
@@ -33,6 +33,10 @@ typedef struct {
 typedef struct {
     Token token;
 } OperatorToken;
+
+typedef struct {
+    Token token;
+} ParenToken;
 
 
 
@@ -89,12 +93,42 @@ int operatortoken_create(uint8_t pos, char value, OperatorToken** out) {
     return 0;
 }
 
+// Create an operator token
+int parentoken_create(uint8_t pos, char value, ParenToken** out) {
+    Token token;
+    
+    switch (value) {
+        case '(':
+            token.type = tokentype_lparen;
+            break;
+        case ')':
+            token.type = tokentype_rparen;
+            break;
+        default:
+            return 1;
+
+    }
+    token.pos = pos;
+
+    ParenToken* parentoken = malloc(sizeof(ParenToken));
+    if (parentoken == NULL) {
+        return 2;  // Allocation error
+    }
+
+    parentoken->token = token;
+
+    *out = parentoken;
+    return 0;
+}
+
 // Print token values based on type
 void token_print(Token* token) {
     if (token->type == tokentype_number) {
         printf("NumberToken: %f\n", ((NumberToken*) token)->value);
     } else if (token->type == tokentype_plus || token->type == tokentype_minus || token->type == tokentype_star || token->type == tokentype_slash) {
         printf("OperatorToken: %d\n", ((OperatorToken*) token)->token.type);
+    } else if (token->type == tokentype_lparen || token->type == tokentype_rparen) {
+        printf("ParenToken: %d\n", ((ParenToken*) token)->token.type);
     }
 }
 
@@ -159,8 +193,19 @@ int main(void) {
     token_print(&operatortoken->token);
 
 
+    ParenToken* lparentoken;
+    if (parentoken_create(2, '(', &lparentoken)) {
+        printf("Error creating lparen token\n");
+        return 1;
+    }
+    token_print(&lparentoken->token);
+
+
+
+
     // Free allocated memory
     free(stringtoken);
     free(operatortoken);
+    free(lparentoken);
     return 0;
 }
