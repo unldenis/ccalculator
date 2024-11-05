@@ -1,28 +1,35 @@
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>  // For malloc and free
 
 typedef enum {
-    tokentype_string,
-    tokentype_int,
-    tokentype_float
+    // Number
+    tokentype_number,
+    
+    // Operators
+    tokentype_plus,
+    tokentype_minus,
+    tokentype_star,
+    tokentype_slash,
+    
+    // Parenthesis
+    tokentype_lparen,
+    tokentype_rparen
 } TokenType;
 
 typedef struct {
     TokenType type;
-    char* name;
+    uint8_t pos;
 } Token;
 
 typedef struct {
     Token token;
-    char* value;
-} StringToken;
+    double_t value;
+} NumberToken;
 
-typedef struct {
-    Token token;
-    int value;
-} IntToken;
+
 
 typedef enum {
     inputerror_noerror = 0,
@@ -31,47 +38,28 @@ typedef enum {
 } InputError;
 
 // Create a string token
-int stringtoken_create(char* name, char* value, StringToken** out) {
+int numbertoken_create(uint8_t pos, double_t value, NumberToken** out) {
     Token token;
-    token.type = tokentype_string;
-    token.name = name;
+    token.type = tokentype_number;
+    token.pos = pos;
 
-    StringToken* stringtoken = malloc(sizeof(StringToken));
-    if (stringtoken == NULL) {
+    NumberToken* numbertoken = malloc(sizeof(NumberToken));
+    if (numbertoken == NULL) {
         return 1;  // Allocation error
     }
 
-    stringtoken->token = token;
-    stringtoken->value = value;
+    numbertoken->token = token;
+    numbertoken->value = value;
 
-    *out = stringtoken;
-    return 0;
-}
-
-// Create an integer token
-int inttoken_create(char* name, int value, IntToken** out) {
-    Token token;
-    token.type = tokentype_int;
-    token.name = name;
-
-    IntToken* inttoken = malloc(sizeof(IntToken));
-    if (inttoken == NULL) {
-        return 1;  // Allocation error
-    }
-
-    inttoken->token = token;
-    inttoken->value = value;
-
-    *out = inttoken;
+    *out = numbertoken;
     return 0;
 }
 
 // Print token values based on type
 void token_print(Token* token) {
-    if (token->type == tokentype_string) {
-        printf("StringToken: %s\n", ((StringToken*) token)->value);
-    } else if (token->type == tokentype_int) {
-        printf("IntToken: %d\n", ((IntToken*) token)->value);
+    if (token->type == tokentype_number) {
+        printf("NumberToken: %f\n", ((NumberToken*) token)->value);
+    } else if (token->type == tokentype_plus) {
     }
 }
 
@@ -114,24 +102,16 @@ int main(void) {
 
     printf("OK [%s]\n", buff);  // Print user input
 
-    StringToken* stringtoken;
-    if (stringtoken_create("input", buff, &stringtoken)) {
-        printf("Error creating string token\n");
+    NumberToken* stringtoken;
+    if (numbertoken_create(2, 25, &stringtoken)) {
+        printf("Error creating number token\n");
         return 1;
     }
 
     token_print(&stringtoken->token);
 
-    IntToken* inttoken;
-    if (inttoken_create("input", 60, &inttoken)) {
-        printf("Error creating int token\n");
-        return 1;
-    }
-
-    token_print(&inttoken->token);
 
     // Free allocated memory
     free(stringtoken);
-    free(inttoken);
     return 0;
 }
