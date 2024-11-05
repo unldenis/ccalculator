@@ -4,6 +4,14 @@
 #include <stdint.h>
 #include <stdlib.h>  // For malloc and free
 
+
+
+//
+//
+// ** Lexer
+//
+//
+
 typedef enum {
     // Number
     tokentype_number = 0,
@@ -132,6 +140,75 @@ void token_print(Token* token) {
     }
 }
 
+int lexer(char* input, void** tokens, size_t* token_amount) {
+
+    *tokens = malloc(sizeof(void*) * 64);
+    *token_amount = 0;
+
+    size_t i = 0;
+    char c;
+    while(input[i] != '\0') {
+        c = input[i];
+        switch (c) {
+
+            case '+':
+            case '-':
+            case '*':
+            case '\\':
+            case '/':
+
+                OperatorToken* operatortoken;
+                
+                if (operatortoken_create(i, c, &operatortoken)) {
+                    printf("Error creating operator token\n");
+                    return 1;
+                }
+
+                tokens[*token_amount] = operatortoken;
+                
+                *token_amount = *token_amount + 1;
+
+                break;
+
+            case '(':
+            case ')':
+
+                ParenToken* parentoken;
+                
+                if (parentoken_create(i, c, &parentoken)) {
+                    printf("Error creating paren token\n");
+                    return 1;
+                }
+
+                tokens[*token_amount] = parentoken;
+                
+                *token_amount = *token_amount + 1;
+                break;
+        
+        }
+
+    }
+    
+    return 0;
+}
+
+//
+//
+// ** Parser
+//
+//
+
+int parse() {
+    return 1;
+}
+
+
+
+//
+//
+// ** Input
+//
+//
 
 typedef enum {
     inputerror_noerror = 0,
